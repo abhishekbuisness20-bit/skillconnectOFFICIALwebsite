@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --navy-deep: #071426;
+    --navy-surface: #0a1b34;
+    --cyan-glow: #08C8F0;
+    --green-glow: #27D879;
+    --ice-white: #EAF5FF;
+    --purple-glow: #9b51e0;
+  }
+
+  html.light {
+    color-scheme: light;
+    --navy-deep: #f8fafc;
+    --navy-surface: #ffffff;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050814;
+  }
+  html.light ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 9999px;
+    border: 2px solid #050814;
+  }
+  html.light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border: 2px solid #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+  html.light ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Glassmorphism primitives (Dark default) */
+.glass-panel {
+  background: rgba(10, 15, 38, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 242, 254, 0.12);
+}
+
+.glass-card {
+  background: rgba(13, 20, 48, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(17, 26, 61, 0.7);
+  border-color: rgba(0, 242, 254, 0.35);
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.12), inset 0 0 15px rgba(0, 242, 254, 0.05);
+}
+
+.glass-nav {
+  background: rgba(5, 8, 20, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.1);
+}
+
+.glow-cyan {
+  text-shadow: 0 0 25px rgba(0, 242, 254, 0.45);
+}
+
+.glow-purple {
+  text-shadow: 0 0 25px rgba(155, 81, 224, 0.45);
+}
+
+.bg-radial-grid {
+  background-image: 
+    radial-gradient(rgba(0, 242, 254, 0.07) 1px, transparent 1px),
+    radial-gradient(rgba(155, 81, 224, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+}
+
+/* Light Mode Theme Overrides */
+html.light body,
+html.light .bg-\[\#050814\],
+html.light .bg-\[\#040713\] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .glass-nav {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+}
+
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+}
+
+html.light .glass-card:hover {
+  background: #ffffff;
+  border-color: rgba(2, 132, 199, 0.45);
+  box-shadow: 0 14px 32px -5px rgba(2, 132, 199, 0.14);
+}
+
+html.light .bg-radial-grid {
+  background-image:
+    radial-gradient(rgba(2, 132, 199, 0.1) 1px, transparent 1px),
+    radial-gradient(rgba(124, 58, 237, 0.08) 1px, transparent 1px);
+}
+
+html.light .bg-slate-900,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-950,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/60,
+html.light .bg-\[\#070c1f\]\/95,
+html.light .bg-\[\#080d24\]\/95,
+html.light .bg-\[\#050814\]\/60,
+html.light .bg-\[\#071426\]\/80,
+html.light .bg-\[\#071426\]\/85,
+html.light .bg-\[\#071426\]\/90 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+/* Keep white text inside vibrant gradient CTA buttons and badges */
+html.light .from-cyan-500.text-white,
+html.light .from-emerald-500.text-white,
+html.light .bg-rose-600.text-white,
+html.light button.bg-gradient-to-r.text-white,
+html.light a.bg-gradient-to-r.text-white,
+html.light button.bg-gradient-to-r.text-white span,
+html.light a.bg-gradient-to-r.text-white span {
+  color: #ffffff !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-cyan-300,
+html.light .text-cyan-400,
+html.light .text-\[\#08C8F0\] {
+  color: #0369a1 !important;
+}
+
+html.light .text-emerald-300,
+html.light .text-emerald-400,
+html.light .text-\[\#27D879\] {
+  color: #047857 !important;
+}
+
+html.light .text-purple-300,
+html.light .text-purple-400 {
+  color: #6d28d9 !important;
+}
+
+html.light .bg-clip-text.text-transparent {
+  background-image: linear-gradient(to right, #0369a1, #0f172a, #047857) !important;
+}
+
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15 {
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+/* Global Keyboard Focus Accessibility */
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #22d3ee;
+    outline-offset: 2px;
+  }
+
+  html.light a:focus-visible,
+  html.light button:focus-visible,
+  html.light input:focus-visible,
+  html.light select:focus-visible,
+  html.light textarea:focus-visible,
+  html.light [tabindex]:focus-visible {
+    outline-color: #0369a1;
+  }
+}
+
+/* Respect OS prefers-reduced-motion accessibility preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

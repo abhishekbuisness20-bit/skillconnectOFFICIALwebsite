@@ -1,0 +1,46 @@
+# SkillConnect Official Website robots.txt
+# Official Domain: https://skillconnectofficial.cloud.run/
+
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /features
+Allow: /services
+Allow: /showcase
+Allow: /launch
+Allow: /feedback
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /disclaimer
+Allow: /deletion
+Allow: /ads.txt
+Allow: /sitemap.xml
+Allow: /robots.txt
+Allow: /assets/
+Disallow: /founder-cms
+
+User-agent: Googlebot
+Allow: /
+Disallow: /founder-cms
+
+User-agent: Googlebot-Mobile
+Allow: /
+Disallow: /founder-cms
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+Allow: /ads.txt
+
+User-agent: AdsBot-Google
+Allow: /
+Allow: /ads.txt
+
+User-agent: Bingbot
+Allow: /
+Disallow: /founder-cms
+
+Sitemap: https://skillconnectofficial.cloud.run/sitemap.xml

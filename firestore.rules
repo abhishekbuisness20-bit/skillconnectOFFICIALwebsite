@@ -1,0 +1,376 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Verified Founder / Admin authorization (Provisioned Founder UID + Bootstrapped Founder Email or /admins doc)
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.uid == 'TvWkRWE868gnDaiFkH0IqBuGb0u2'
+        || (request.auth.token.email == 'singhabhishek83072@gmail.com' && request.auth.token.email_verified == true)
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation for Contact Inquiry
+    function isValidContactInquiry(data) {
+      return data.keys().hasAll(['fullName', 'email', 'subject', 'message', 'status', 'createdAt'])
+        && data.keys().hasOnly(['fullName', 'email', 'subject', 'message', 'status', 'createdAt'])
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && data.subject is string && data.subject.size() >= 2 && data.subject.size() <= 150
+        && data.message is string && data.message.size() >= 10 && data.message.size() <= 2000
+        && data.status in ['pending', 'reviewed', 'resolved', 'active', 'suspended'];
+    }
+
+    // Validation for Activity Report
+    function isValidActivityReport(data) {
+      return data.keys().hasAll(['actionType', 'customerName', 'customerEmail', 'details', 'status', 'createdAt'])
+        && data.keys().hasOnly(['actionType', 'targetFeature', 'customerName', 'customerEmail', 'details', 'status', 'createdAt'])
+        && data.actionType is string && data.actionType.size() >= 2 && data.actionType.size() <= 100
+        && (!('targetFeature' in data) || (data.targetFeature is string && data.targetFeature.size() <= 100))
+        && data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 100
+        && data.customerEmail is string && data.customerEmail.size() >= 5 && data.customerEmail.size() <= 120
+        && data.details is string && data.details.size() >= 5 && data.details.size() <= 2500
+        && data.status in ['new', 'in_review', 'contacted', 'active', 'suspended'];
+    }
+
+    // Validation for Service Provider Registration
+    function isValidServiceProvider(data) {
+      return data.keys().hasAll(['fullName', 'phone', 'email', 'category', 'city', 'state', 'experienceYears', 'bio', 'status', 'createdAt'])
+        && data.keys().hasOnly(['fullName', 'phone', 'email', 'category', 'city', 'state', 'experienceYears', 'bio', 'status', 'createdAt'])
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100
+        && data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 20
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && data.category is string && data.category.size() >= 2 && data.category.size() <= 60
+        && data.city is string && data.city.size() >= 2 && data.city.size() <= 60
+        && data.state is string && data.state.size() >= 2 && data.state.size() <= 60
+        && (data.experienceYears is int || data.experienceYears is float) && data.experienceYears >= 0 && data.experienceYears <= 50
+        && data.bio is string && data.bio.size() >= 10 && data.bio.size() <= 1000
+        && data.status in ['pending_verification', 'approved', 'rejected', 'active', 'suspended'];
+    }
+
+    // Validation for Community Feedback
+    function isValidCommunityFeedback(data) {
+      return data.keys().hasAll(['testerName', 'role', 'city', 'category', 'rating', 'comment', 'status', 'createdAt'])
+        && data.keys().hasOnly(['testerName', 'role', 'city', 'category', 'rating', 'comment', 'status', 'createdAt'])
+        && data.testerName is string && data.testerName.size() >= 2 && data.testerName.size() <= 100
+        && data.role is string && data.role.size() >= 2 && data.role.size() <= 100
+        && data.city is string && data.city.size() >= 2 && data.city.size() <= 60
+        && data.category in ['trades', 'tech', 'mentorship', 'general']
+        && (data.rating is int || data.rating is float) && data.rating >= 1 && data.rating <= 5
+        && data.comment is string && data.comment.size() >= 10 && data.comment.size() <= 1500
+        && data.status in ['pending_review', 'approved', 'rejected', 'suspended'];
+    }
+
+    // Validation for CMS Site Configuration
+    function isValidCMSSiteConfig(data) {
+      return data.keys().hasAll(['status', 'homepage', 'about', 'contact', 'seo', 'services', 'testimonials', 'updatedBy', 'updatedAt'])
+        && data.keys().hasOnly(['status', 'homepage', 'about', 'contact', 'seo', 'services', 'testimonials', 'faqs', 'customization', 'updatedBy', 'updatedAt'])
+        && data.status in ['draft', 'published']
+        && data.homepage is map
+        && data.about is map
+        && data.contact is map
+        && data.seo is map
+        && data.services is list && data.services.size() <= 30
+        && data.testimonials is list && data.testimonials.size() <= 40
+        && (!('faqs' in data) || (data.faqs is list && data.faqs.size() <= 40))
+        && (!('customization' in data) || data.customization is map)
+        && data.updatedBy is string && data.updatedBy.size() <= 120;
+    }
+
+    // Validation for CMS Banner
+    function isValidCMSBanner(data) {
+      return data.keys().hasAll(['title', 'subtitle', 'imageUrl', 'buttonText', 'buttonLink', 'bannerType', 'startDate', 'endDate', 'enabled', 'status', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'subtitle', 'imageUrl', 'buttonText', 'buttonLink', 'bannerType', 'startDate', 'endDate', 'enabled', 'status', 'updatedAt'])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.subtitle is string && data.subtitle.size() <= 500
+        && data.imageUrl is string && data.imageUrl.size() <= 650000
+        && data.buttonText is string && data.buttonText.size() <= 60
+        && data.buttonLink is string && data.buttonLink.size() <= 300
+        && data.bannerType in ['promotional', 'event']
+        && data.startDate is string && data.startDate.size() <= 40
+        && data.endDate is string && data.endDate.size() <= 40
+        && data.enabled is bool
+        && data.status in ['draft', 'published'];
+    }
+
+    // Validation for CMS Announcement
+    function isValidCMSAnnouncement(data) {
+      return data.keys().hasAll(['title', 'message', 'type', 'linkText', 'linkUrl', 'startDate', 'expiryDate', 'status', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'message', 'type', 'linkText', 'linkUrl', 'startDate', 'expiryDate', 'status', 'updatedAt'])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.message is string && data.message.size() >= 2 && data.message.size() <= 600
+        && data.type in ['info', 'launch', 'event', 'alert', 'festival']
+        && data.linkText is string && data.linkText.size() <= 60
+        && data.linkUrl is string && data.linkUrl.size() <= 300
+        && data.startDate is string && data.startDate.size() <= 40
+        && data.expiryDate is string && data.expiryDate.size() <= 40
+        && data.status in ['draft', 'published'];
+    }
+
+    // Validation for CMS Event
+    function isValidCMSEvent(data) {
+      return data.keys().hasAll(['title', 'description', 'eventDate', 'location', 'posterUrl', 'registrationLink', 'status', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'description', 'eventDate', 'location', 'posterUrl', 'registrationLink', 'status', 'updatedAt'])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.description is string && data.description.size() >= 5 && data.description.size() <= 1500
+        && data.eventDate is string && data.eventDate.size() <= 50
+        && data.location is string && data.location.size() <= 120
+        && data.posterUrl is string && data.posterUrl.size() <= 650000
+        && data.registrationLink is string && data.registrationLink.size() <= 300
+        && data.status in ['draft', 'published'];
+    }
+
+    // Validation for CMS Media Asset
+    function isValidCMSMedia(data) {
+      return data.keys().hasAll(['title', 'altText', 'category', 'url', 'storagePath', 'mimeType', 'sizeBytes', 'createdAt'])
+        && data.keys().hasOnly(['title', 'altText', 'category', 'url', 'storagePath', 'mimeType', 'sizeBytes', 'createdAt'])
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.altText is string && data.altText.size() <= 200
+        && data.category in ['banner', 'event_poster', 'seo_social', 'general']
+        && data.url is string && data.url.size() <= 650000
+        && data.storagePath is string && data.storagePath.size() <= 300
+        && data.mimeType is string && data.mimeType.size() <= 60
+        && (data.sizeBytes is int || data.sizeBytes is float) && data.sizeBytes >= 0;
+    }
+
+    // Validation for CMS Revision
+    function isValidCMSRevision(data) {
+      return data.keys().hasAll(['label', 'authorEmail', 'snapshotData', 'createdAt'])
+        && data.keys().hasOnly(['label', 'authorEmail', 'snapshotData', 'createdAt'])
+        && data.label is string && data.label.size() >= 2 && data.label.size() <= 150
+        && data.authorEmail is string && data.authorEmail.size() <= 120
+        && data.snapshotData is map;
+    }
+
+    // Validation for CMS Audit Log
+    function isValidCMSAuditLog(data) {
+      return data.keys().hasAll(['action', 'module', 'summary', 'actorEmail', 'createdAt'])
+        && data.keys().hasOnly(['action', 'module', 'summary', 'actorEmail', 'createdAt'])
+        && data.action is string && data.action.size() >= 2 && data.action.size() <= 80
+        && data.module is string && data.module.size() >= 2 && data.module.size() <= 80
+        && data.summary is string && data.summary.size() >= 2 && data.summary.size() <= 500
+        && data.actorEmail is string && data.actorEmail.size() >= 5 && data.actorEmail.size() <= 120;
+    }
+
+    // Validation for User Profile
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email', 'displayName', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'email', 'displayName', 'photoURL', 'createdAt', 'updatedAt'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && data.displayName is string && data.displayName.size() <= 100
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500));
+    }
+
+    // Rules for Contact Inquiries
+    match /contact_inquiries/{inquiryId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(inquiryId)
+        && isValidContactInquiry(incoming())
+        && incoming().status == 'pending'
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(inquiryId)
+        && isValidContactInquiry(incoming())
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(inquiryId);
+    }
+
+    // Rules for Activity Reports
+    match /activity_reports/{reportId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(reportId)
+        && isValidActivityReport(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(reportId)
+        && isValidActivityReport(incoming())
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(reportId);
+    }
+
+    // Rules for Service Providers
+    match /service_providers/{providerId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(providerId)
+        && isValidServiceProvider(incoming())
+        && incoming().status == 'pending_verification'
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(providerId)
+        && isValidServiceProvider(incoming())
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(providerId);
+    }
+
+    // Rules for Community Feedback
+    match /community_feedback/{feedbackId} {
+      allow get: if resource.data.status == 'approved' || isAdmin();
+      allow list: if resource.data.status == 'approved' || isAdmin();
+      allow create: if isValidId(feedbackId)
+        && isValidCommunityFeedback(incoming())
+        && incoming().status == 'pending_review'
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(feedbackId)
+        && isValidCommunityFeedback(incoming())
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(feedbackId);
+    }
+
+    // Rules for CMS Site Config
+    match /cms_config/{configId} {
+      allow get: if configId == 'site_published' || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if isAdmin()
+        && isValidId(configId)
+        && isValidCMSSiteConfig(incoming())
+        && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(configId);
+    }
+
+    // Rules for CMS Banners
+    match /cms_banners/{bannerId} {
+      allow get: if resource.data.status == 'published' || isAdmin();
+      allow list: if resource.data.status == 'published' || isAdmin();
+      allow create, update: if isAdmin()
+        && isValidId(bannerId)
+        && isValidCMSBanner(incoming())
+        && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(bannerId);
+    }
+
+    // Rules for CMS Announcements
+    match /cms_announcements/{announcementId} {
+      allow get: if resource.data.status == 'published' || isAdmin();
+      allow list: if resource.data.status == 'published' || isAdmin();
+      allow create, update: if isAdmin()
+        && isValidId(announcementId)
+        && isValidCMSAnnouncement(incoming())
+        && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(announcementId);
+    }
+
+    // Rules for CMS Events
+    match /cms_events/{eventId} {
+      allow get: if resource.data.status == 'published' || isAdmin();
+      allow list: if resource.data.status == 'published' || isAdmin();
+      allow create, update: if isAdmin()
+        && isValidId(eventId)
+        && isValidCMSEvent(incoming())
+        && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(eventId);
+    }
+
+    // Rules for CMS Media Assets
+    match /cms_media/{mediaId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(mediaId)
+        && isValidCMSMedia(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(mediaId)
+        && isValidCMSMedia(incoming())
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(mediaId);
+    }
+
+    // Rules for CMS Revisions
+    match /cms_revisions/{revisionId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(revisionId)
+        && isValidCMSRevision(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(revisionId);
+    }
+
+    // Rules for CMS Audit Logs (Immutable)
+    match /cms_audit_logs/{logId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(logId)
+        && isValidCMSAuditLog(incoming())
+        && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Rules for Users
+    match /users/{userId} {
+      allow get: if (isValidId(userId) && isOwner(userId)) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin() || (
+        isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+      );
+      allow delete: if (isValidId(userId) && isOwner(userId)) || isAdmin();
+    }
+
+    // Rules for Real Website Traffic Analytics
+    match /site_analytics/{metricId} {
+      allow get: if metricId == 'traffic' || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if (
+        metricId == 'traffic'
+        && incoming().keys().hasAll(['totalPageViews', 'uniqueSessions', 'updatedAt'])
+        && incoming().keys().hasOnly(['totalPageViews', 'uniqueSessions', 'lastPath', 'updatedAt'])
+        && incoming().totalPageViews is int && incoming().totalPageViews >= 1
+        && incoming().uniqueSessions is int && incoming().uniqueSessions >= 1
+        && incoming().updatedAt == request.time
+      ) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Connection test rule (for initialization handshake)
+    match /test/connection {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

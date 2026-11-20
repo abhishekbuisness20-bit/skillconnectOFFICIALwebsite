@@ -1,0 +1,6 @@
+{
+  "name": "SkillConnect – Find Trusted Professionals & Services Across India",
+  "description": "SkillConnect is a platform connecting customers, skilled service providers and companies across India. Discover services, connect with professionals and explore opportunities with SkillConnect.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

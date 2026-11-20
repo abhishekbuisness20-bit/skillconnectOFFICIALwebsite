@@ -1,0 +1,241 @@
+{
+  "entities": {
+    "ContactInquiry": {
+      "title": "Contact Inquiry",
+      "description": "General or business inquiry submitted through the SkillConnect contact form.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "email": { "type": "string", "minLength": 5, "maxLength": 120 },
+        "subject": { "type": "string", "minLength": 2, "maxLength": 150 },
+        "message": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "email", "subject", "message", "status", "createdAt"]
+    },
+    "ActivityReport": {
+      "title": "Activity Report",
+      "description": "User activity dispatch from platform feature interaction modals.",
+      "type": "object",
+      "properties": {
+        "actionType": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "targetFeature": { "type": "string", "maxLength": 100 },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "customerEmail": { "type": "string", "minLength": 5, "maxLength": 120 },
+        "details": { "type": "string", "minLength": 5, "maxLength": 2500 },
+        "status": { "type": "string", "enum": ["new", "in_review", "contacted"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["actionType", "customerName", "customerEmail", "details", "status", "createdAt"]
+    },
+    "ServiceProvider": {
+      "title": "Service Provider",
+      "description": "Early registration profile for Indian skilled service professionals.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "phone": { "type": "string", "minLength": 10, "maxLength": 20 },
+        "email": { "type": "string", "minLength": 5, "maxLength": 120 },
+        "category": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "city": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "state": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "experienceYears": { "type": "number" },
+        "bio": { "type": "string", "minLength": 10, "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending_verification", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "phone", "email", "category", "city", "state", "experienceYears", "bio", "status", "createdAt"]
+    },
+    "CommunityFeedback": {
+      "title": "Community Feedback",
+      "description": "Pre-launch feedback and testimonials submitted by early testers and community members across India.",
+      "type": "object",
+      "properties": {
+        "testerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "role": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "city": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "category": { "type": "string", "enum": ["trades", "tech", "mentorship", "general"] },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "minLength": 10, "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["pending_review", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["testerName", "role", "city", "category", "rating", "comment", "status", "createdAt"]
+    },
+    "CMSSiteConfig": {
+      "title": "CMS Site Configuration",
+      "description": "Stores live published or draft website content, homepage structure, about content, services, testimonials, and SEO metadata.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "homepage": { "type": "object" },
+        "about": { "type": "object" },
+        "contact": { "type": "object" },
+        "seo": { "type": "object" },
+        "services": { "type": "array" },
+        "testimonials": { "type": "array" },
+        "updatedBy": { "type": "string", "maxLength": 120 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["status", "homepage", "about", "contact", "seo", "services", "testimonials", "updatedBy", "updatedAt"]
+    },
+    "CMSBanner": {
+      "title": "CMS Promotional or Event Banner",
+      "description": "Promotional and event banners with scheduling and draft/published states.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "subtitle": { "type": "string", "maxLength": 500 },
+        "imageUrl": { "type": "string", "maxLength": 650000 },
+        "buttonText": { "type": "string", "maxLength": 60 },
+        "buttonLink": { "type": "string", "maxLength": 300 },
+        "bannerType": { "type": "string", "enum": ["promotional", "event"] },
+        "startDate": { "type": "string", "maxLength": 40 },
+        "endDate": { "type": "string", "maxLength": 40 },
+        "enabled": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "subtitle", "imageUrl", "buttonText", "buttonLink", "bannerType", "startDate", "endDate", "enabled", "status", "updatedAt"]
+    },
+    "CMSAnnouncement": {
+      "title": "CMS Announcement",
+      "description": "Scheduled announcements with start/expiry dates and publish status.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "message": { "type": "string", "minLength": 2, "maxLength": 600 },
+        "type": { "type": "string", "enum": ["info", "launch", "event", "alert"] },
+        "linkText": { "type": "string", "maxLength": 60 },
+        "linkUrl": { "type": "string", "maxLength": 300 },
+        "startDate": { "type": "string", "maxLength": 40 },
+        "expiryDate": { "type": "string", "maxLength": 40 },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "message", "type", "linkText", "linkUrl", "startDate", "expiryDate", "status", "updatedAt"]
+    },
+    "CMSEvent": {
+      "title": "CMS Upcoming Event",
+      "description": "Platform events with poster images, descriptions, dates, and publish states.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "description": { "type": "string", "minLength": 5, "maxLength": 1500 },
+        "eventDate": { "type": "string", "maxLength": 50 },
+        "location": { "type": "string", "maxLength": 120 },
+        "posterUrl": { "type": "string", "maxLength": 650000 },
+        "registrationLink": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "eventDate", "location", "posterUrl", "registrationLink", "status", "updatedAt"]
+    },
+    "CMSMediaAsset": {
+      "title": "CMS Media Asset",
+      "description": "Uploaded promotional graphics, banners, and event posters managed by the Founder.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "altText": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "enum": ["banner", "event_poster", "seo_social", "general"] },
+        "url": { "type": "string", "maxLength": 650000 },
+        "storagePath": { "type": "string", "maxLength": 300 },
+        "mimeType": { "type": "string", "maxLength": 60 },
+        "sizeBytes": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "altText", "category", "url", "storagePath", "mimeType", "sizeBytes", "createdAt"]
+    },
+    "CMSRevision": {
+      "title": "CMS Revision Snapshot",
+      "description": "Historical snapshot of published site configuration allowing safe rollback.",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string", "minLength": 2, "maxLength": 150 },
+        "authorEmail": { "type": "string", "maxLength": 120 },
+        "snapshotData": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["label", "authorEmail", "snapshotData", "createdAt"]
+    },
+    "CMSAuditLog": {
+      "title": "CMS Audit Log",
+      "description": "Immutable timestamped audit log of Founder CMS actions.",
+      "type": "object",
+      "properties": {
+        "action": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "module": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "summary": { "type": "string", "minLength": 2, "maxLength": 500 },
+        "actorEmail": { "type": "string", "minLength": 5, "maxLength": 120 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["action", "module", "summary", "actorEmail", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile with owner-restricted access to protect PII.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "displayName", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/contact_inquiries/{inquiryId}": {
+      "schema": "ContactInquiry",
+      "description": "Stores user inquiries sent to the SkillConnect leadership team."
+    },
+    "/activity_reports/{reportId}": {
+      "schema": "ActivityReport",
+      "description": "Stores activity and dispatch requests from platform features."
+    },
+    "/service_providers/{providerId}": {
+      "schema": "ServiceProvider",
+      "description": "Stores provider onboarding pre-registrations for verification."
+    },
+    "/community_feedback/{feedbackId}": {
+      "schema": "CommunityFeedback",
+      "description": "Stores user and tester feedback submitted ahead of the platform launch."
+    },
+    "/cms_config/{configId}": {
+      "schema": "CMSSiteConfig",
+      "description": "Stores published and draft website CMS configuration."
+    },
+    "/cms_banners/{bannerId}": {
+      "schema": "CMSBanner",
+      "description": "Stores promotional and event banners."
+    },
+    "/cms_announcements/{announcementId}": {
+      "schema": "CMSAnnouncement",
+      "description": "Stores platform announcements with start and expiry dates."
+    },
+    "/cms_events/{eventId}": {
+      "schema": "CMSEvent",
+      "description": "Stores upcoming platform events and posters."
+    },
+    "/cms_media/{mediaId}": {
+      "schema": "CMSMediaAsset",
+      "description": "Stores uploaded media assets and promotional graphics."
+    },
+    "/cms_revisions/{revisionId}": {
+      "schema": "CMSRevision",
+      "description": "Stores historical revision snapshots for rollback."
+    },
+    "/cms_audit_logs/{logId}": {
+      "schema": "CMSAuditLog",
+      "description": "Stores immutable audit trail of Founder CMS operations."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores private user account information readable and writable only by the authenticated owner."
+    }
+  }
+}
